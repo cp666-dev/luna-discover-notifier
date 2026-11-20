@@ -1,11 +1,13 @@
-// Posts to Discord and/or Slack when an Add On is added to LUNA's Discover list, or an
-// Add On already in it gets a new release. LUNA reads that list from MANIFEST_URL.
+// Posts to Discord when an Add On is added to LUNA's Discover list, or an Add On already
+// in it gets a new release, and posts an Add On of the Day to Slack. LUNA reads that list from MANIFEST_URL.
 //
 // Env:
 //   DISCORD_WEBHOOK_URL  a Discord channel's webhook
 //   DISCORD_ROLE_ID      optional role to ping, so members can opt in to alerts
-//   SLACK_WEBHOOK_URL    a Slack incoming webhook (at least one of the two is required)
-//   SLACK_MENTION        optional, e.g. <!channel> or <!subteam^ID>, on new Add Ons
+//   SLACK_WEBHOOK_URL    a Slack incoming webhook, for the Add On of the Day
+//   SLACK_MENTION        optional, e.g. <!here> or <!subteam^ID>, leading that post
+//   DAILY_HOUR, DAILY_TZ when the day's post goes out (default 9, America/Los_Angeles)
+//   DAILY_FORCE=1        post an Add On of the Day now
 //   GITHUB_TOKEN         optional, raises GitHub's API rate limit
 //   DRY_RUN=1            print what would be posted, change nothing
 //   STATE_FILE           default ./state.json
@@ -201,33 +203,54 @@ async function post(webhook, { payload, files }) {
     throw new Error('Discord kept rate limiting');
 }
 
-// ---- Slack ---------------------------------------------------------------
+// ---- Add On of the Day (Slack) --------------------------------------------
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/** The date (`YYYY-MM-DD`) and hour (0-23) at `date` in `timeZone`. */
+export function localNow(date, timeZone) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+        timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+    }).formatToParts(date).map((x) => [x.type, x.value]));
+    return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
+}
+
 /**
- * The Slack incoming-webhook message for one change: `{ payload }`. Slack webhooks cannot
- * upload files, so there is no icon. `mention` (e.g. `<!channel>` or `<!subteam^ID>`)
- * goes on new Add Ons only.
+ * Today's pick: at random from the listed Add Ons not yet featured this round. When every
+ * one has had a turn a new round starts, never with the one just shown. Add Ons approved
+ * mid-round join it. Returns `{ repo, featured }`, `featured` being the round with it added.
  */
-export function buildSlackMessage(change, release, addOns, mention) {
-    const owner = change.repo.split('/')[0];
-    const list = addOns.length ? addOns.slice(0, 10) : [{ name: change.repo.split('/')[1], description: '', categories: [] }];
-    const blocks = [];
+export function pickOfTheDay(listed, featured = [], random = Math.random) {
+    let round = featured.filter((r) => listed.includes(r));
+    let pool = listed.filter((r) => !round.includes(r));
+    if (!pool.length) {
+        round = [];
+        pool = listed.length > 1 ? listed.filter((r) => r !== featured.at(-1)) : listed;
+    }
+    const repo = pool[Math.floor(random() * pool.length)];
+    return { repo, featured: [...round, repo] };
+}
+
+/**
+ * The Slack incoming-webhook message featuring one listing: `{ payload }`. Slack webhooks
+ * cannot upload files, so there is no icon. `mention` (`<!here>`, `<!subteam^ID>`) leads it.
+ */
+export function buildDailyMessage(repo, release, addOns, mention) {
+    const owner = repo.split('/')[0];
+    const list = addOns.length ? addOns.slice(0, 10) : [{ name: repo.split('/')[1], description: '', categories: [] }];
+    const blocks = [{ type: 'header', text: { type: 'plain_text', text: 'Add On of the Day' } }];
     for (const a of list) {
-        const version = a.version || change.tag;
-        const title = change.kind === 'new' ? `New in Discover: ${a.name}` : `Updated: ${a.name} ${version}`;
-        const notes = cleanNotes(release.body);
-        const body = change.kind === 'new' ? a.description || notes : notes || a.description;
-        blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`*<${release.html_url}|${esc(title)}>*\n${esc(body)}`, 3000) } });
-        const facts = [`By *${esc(a.manufacturer || owner)}*`, change.kind === 'updated' ? `${esc(change.previousTag)} → ${esc(version)}` : esc(version)];
+        const by = esc(a.manufacturer || owner);
+        const body = a.description || cleanNotes(release.body);
+        blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`*<${release.html_url}|${esc(a.name)}>*  by ${by}\n${esc(body)}`, 3000) } });
+        const facts = [esc(a.version || release.tag_name || '')].filter(Boolean);
         if (a.categories.length) facts.push(esc(a.categories.join(', ')));
         if (a.minLuna) facts.push(`Needs LUNA ${esc(a.minLuna)}+`);
-        blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: facts.join('  ·  ') }] });
+        if (facts.length) blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: facts.join('  ·  ') }] });
     }
     blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: 'Install it from LUNA › Add Ons › Discover' }] });
-    const lead = change.kind === 'new' ? `${mention ? `${mention} ` : ''}A new Add On is in Discover: ${list.map((a) => a.name).join(', ')}` : `Updated in Discover: ${list.map((a) => a.name).join(', ')}`;
-    return { payload: { text: lead, blocks } };
+    const names = list.map((a) => a.name).join(', ');
+    return { payload: { text: `${mention ? `${mention} ` : ''}Add On of the Day: ${names}`, blocks } };
 }
 
 async function postSlack(webhook, { payload }) {
@@ -243,21 +266,38 @@ async function postSlack(webhook, { payload }) {
     throw new Error('Slack kept rate limiting');
 }
 
+/**
+ * Posts today's Add On once, on the first run at or after DAILY_HOUR, so a late or skipped
+ * schedule still posts that day. DAILY_FORCE=1 posts now regardless.
+ */
+async function addOnOfTheDay(env, state, current, release, dryRun) {
+    const force = env.DAILY_FORCE === '1';
+    const { day, hour } = localNow(new Date(), env.DAILY_TZ || 'America/Los_Angeles');
+    const daily = (state.daily ??= { last_day: null, featured: [] });
+    if (!force && (daily.last_day === day || hour < Number(env.DAILY_HOUR ?? 9))) return;
+    const { repo, featured } = pickOfTheDay(Object.keys(current).sort(), daily.featured);
+    console.log(`add on of the day: ${repo}`);
+    const { release: r, addOns } = await release({ repo, tag: current[repo] });
+    const message = buildDailyMessage(repo, r, addOns, env.SLACK_MENTION);
+    if (dryRun) console.log(JSON.stringify(message.payload, null, 2));
+    else await postSlack(env.SLACK_WEBHOOK_URL, message);
+    Object.assign(daily, { last_day: day, featured });
+}
+
 // ---- main ----------------------------------------------------------------
 
 /** Where to post, from env. Each target remembers what it announced on its own. */
 function targetsFromEnv(env, dryRun) {
     const all = {
         discord: { url: env.DISCORD_WEBHOOK_URL, build: (c, r, a) => buildMessage(c, r, a, env.DISCORD_ROLE_ID), send: post },
-        slack: { url: env.SLACK_WEBHOOK_URL, build: (c, r, a) => buildSlackMessage(c, r, a, env.SLACK_MENTION), send: postSlack },
     };
     return Object.fromEntries(Object.entries(all).filter(([, t]) => dryRun || t.url));
 }
 
 /**
- * state.json is `{ targets: { <name>: { "owner/repo": tag } } }`. An older `{ listings }`
- * is Discord's. A target with no record yet (a new Slack hookup) starts from what is
- * listed now, so turning it on does not announce everything at once.
+ * state.json is `{ targets: { <name>: { "owner/repo": tag } }, daily? }`. An older
+ * `{ listings }` is Discord's. A target with no record yet starts from what is listed now,
+ * so turning it on does not announce everything at once.
  */
 export function prepareState(saved, current, names, announceExisting = false) {
     const targets = { ...(saved?.targets ?? (saved?.listings ? { discord: saved.listings } : {})) };
@@ -274,7 +314,8 @@ export async function main(env = process.env) {
     const stateFile = env.STATE_FILE ?? new URL('./state.json', import.meta.url);
     const dryRun = env.DRY_RUN === '1';
     const targets = targetsFromEnv(env, dryRun);
-    if (!Object.keys(targets).length) throw new Error('Set DISCORD_WEBHOOK_URL and/or SLACK_WEBHOOK_URL');
+    const daily = dryRun || Boolean(env.SLACK_WEBHOOK_URL);
+    if (!Object.keys(targets).length && !daily) throw new Error('Set DISCORD_WEBHOOK_URL and/or SLACK_WEBHOOK_URL');
 
     const current = listingsFromManifest(await get(MANIFEST_URL));
     if (!Object.keys(current).length) throw new Error('Discover manifest listed no Add Ons; not trusting it');
@@ -310,6 +351,15 @@ export async function main(env = process.env) {
                 failed++;
                 console.error(`  failed, will retry next run: ${err.message}`);
             }
+        }
+    }
+    state.daily = saved?.daily;
+    if (daily) {
+        try {
+            await addOnOfTheDay(env, state, current, release, dryRun);
+        } catch (err) {
+            failed++;
+            console.error(`  add on of the day failed, will retry next run: ${err.message}`);
         }
     }
     await save();

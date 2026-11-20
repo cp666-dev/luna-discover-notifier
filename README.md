@@ -1,6 +1,6 @@
 # LUNA Discover notifier
 
-Posts to a Discord channel and/or a Slack channel when an Add On is approved into LUNA's **Discover** list, and
+Posts to a Discord channel when an Add On is approved into LUNA's **Discover** list, and
 when an Add On already there publishes a new release.
 
 LUNA reads Discover from
@@ -27,17 +27,21 @@ under load.
    id (Developer Mode › right click › Copy Role ID) into **Variables** › `DISCORD_ROLE_ID`.
 4. Actions › Discover notifier › Run workflow, once, to record the current list.
 
-## Slack
+## Add On of the Day (Slack)
+
+Once a day, from 9:00 Pacific, the first run posts one Discover Add On to Slack: name,
+maker, description, version, category, required LUNA version and a link. It is picked at
+random from those not featured yet this round; when all have had a turn a new round starts.
+Newly approved Add Ons join the current round. Posting from the 15-minute check, rather than
+a once-a-day schedule, means a late or skipped GitHub schedule still posts that day.
+Slack webhooks cannot upload files, so the post has no icon.
 
 1. https://api.slack.com/apps › Create New App › From scratch, pick the workspace.
 2. Incoming Webhooks › on › Add New Webhook to Workspace, choose the channel, copy the URL.
 3. Here: **Secrets** › `SLACK_WEBHOOK_URL`.
-4. Optional **Variables** › `SLACK_MENTION`: `<!channel>`, `<!here>`, or a user group as
-   `<!subteam^S0123ABC>`, added to new-Add-On posts.
-
-Slack starts from whatever is listed when it is first hooked up, and keeps its own record in
-`state.json`, so a failure on one service never re-posts on the other. Slack webhooks cannot
-upload files, so Slack posts have no icon.
+4. Optional **Variables**: `SLACK_MENTION` (`<!here>`, or a user group as
+   `<!subteam^S0123ABC>`), `DAILY_HOUR` (0-23, default 9), `DAILY_TZ` (default
+   `America/Los_Angeles`).
 
 ## Local
 
@@ -45,6 +49,7 @@ upload files, so Slack posts have no icon.
 nvm use
 npm test
 GITHUB_TOKEN=$(gh auth token) npm run dry-run   # prints what it would post, writes nothing
+GITHUB_TOKEN=$(gh auth token) DAILY_FORCE=1 npm run dry-run   # includes a pick of the day
 ```
 
 `ANNOUNCE_EXISTING=1` with no `state.json` announces every listed Add On, for a channel's

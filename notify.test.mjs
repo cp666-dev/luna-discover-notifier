@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { crc32, deflateRawSync } from 'node:zlib';
-import { listingsFromManifest, diffListings, unzip, addOnsFromPackage, buildMessage, buildSlackMessage, cleanNotes, prepareState } from './notify.mjs';
+import { listingsFromManifest, diffListings, unzip, addOnsFromPackage, buildMessage, buildDailyMessage, cleanNotes, prepareState, pickOfTheDay, localNow } from './notify.mjs';
 
 /** A minimal zip writer, so tests need no fixtures. `deflate` picks method 8 for every file. */
 function zip(files, { deflate = false } = {}) {
@@ -153,13 +153,33 @@ test('state: first run seeds every target, unless announcing existing', () => {
     assert.deepEqual(seeded, []);
 });
 
-test('slack message: linked title, escaped text, facts, mention on new only', () => {
+test('pick of the day: no repeats within a round, approvals join, rounds restart', () => {
+    const first = () => 0;
+    let { repo, featured } = pickOfTheDay(['a', 'b', 'c'], [], first);
+    assert.deepEqual([repo, featured], ['a', ['a']]);
+    ({ repo, featured } = pickOfTheDay(['a', 'b', 'c', 'd'], ['a', 'b', 'c'], first));
+    assert.deepEqual([repo, featured], ['d', ['a', 'b', 'c', 'd']]);
+    // Everything shown: a new round, not starting with the last one.
+    ({ repo, featured } = pickOfTheDay(['a', 'b'], ['a', 'b'], () => 0.99));
+    assert.deepEqual([repo, featured], ['a', ['a']]);
+    // Taken-down Add Ons leave the round.
+    ({ repo, featured } = pickOfTheDay(['b', 'c'], ['a', 'b'], first));
+    assert.deepEqual([repo, featured], ['c', ['b', 'c']]);
+    assert.equal(pickOfTheDay(['only'], ['only']).repo, 'only');
+});
+
+test('localNow: date and hour in the given zone', () => {
+    const d = new Date('2026-11-21T07:30:00Z');
+    assert.deepEqual(localNow(d, 'America/Los_Angeles'), { day: '2026-11-20', hour: 23 });
+    assert.deepEqual(localNow(d, 'Europe/London'), { day: '2026-11-21', hour: 7 });
+});
+
+test('daily message: header, linked name, escaped text, facts, optional mention', () => {
     const a = { ...addOn, name: 'A<b>', description: 'x & y' };
-    const { payload } = buildSlackMessage({ repo: 'o/r', tag: '1.0', kind: 'new' }, release, [a], '<!channel>');
-    assert.equal(payload.text, '<!channel> A new Add On is in Discover: A<b>');
-    assert.equal(payload.blocks[0].text.text, `*<${release.html_url}|New in Discover: A&lt;b&gt;>*\nx &amp; y`);
-    assert.equal(payload.blocks[1].elements[0].text, 'By *o*  ·  1.0  ·  Utility  ·  Needs LUNA 3.1.1+');
-    const upd = buildSlackMessage({ repo: 'o/r', tag: '1.1', kind: 'updated', previousTag: '1.0' }, release, [{ ...addOn, version: '1.1' }], '<!channel>');
-    assert.equal(upd.payload.text, 'Updated in Discover: Thing');
-    assert.match(upd.payload.blocks[1].elements[0].text, /1\.0 → 1\.1/);
+    const { payload } = buildDailyMessage('o/r', release, [a], '<!here>');
+    assert.equal(payload.text, '<!here> Add On of the Day: A<b>');
+    assert.equal(payload.blocks[0].text.text, 'Add On of the Day');
+    assert.equal(payload.blocks[1].text.text, `*<${release.html_url}|A&lt;b&gt;>*  by o\nx &amp; y`);
+    assert.equal(payload.blocks[2].elements[0].text, '1.0  ·  Utility  ·  Needs LUNA 3.1.1+');
+    assert.equal(buildDailyMessage('o/r', release, [a]).payload.text, 'Add On of the Day: A<b>');
 });
