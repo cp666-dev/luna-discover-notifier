@@ -1,0 +1,15 @@
+{
+  "listings": {
+    "fwilson-glitch/my-add-on": "v0.1.0",
+    "jhaydon111/luna-add-ons": "0.1.1",
+    "nohumans-com/midi-learn": "0.4.1",
+    "shawngrona/luna-comp-machine": "v1.0.0",
+    "shawnist/listening-booth": "v0.1.0",
+    "uaudio-labs/markers": "0.1.0",
+    "uaudio-labs/midi-notation": "0.1.3",
+    "uaudio-labs/moon-walker": "0.2.1",
+    "uaudio-labs/studiolo": "0.1.10",
+    "uaudio-labs/video-window": "0.1.4",
+    "vvozmitsel-uaudio/sound-browser": "v0.2.1"
+  }
+}
