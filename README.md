@@ -1,6 +1,6 @@
 # LUNA Discover notifier
 
-Posts to a Discord channel when an Add On is approved into LUNA's **Discover** list, and
+Posts to a Discord channel and/or a Slack channel when an Add On is approved into LUNA's **Discover** list, and
 when an Add On already there publishes a new release.
 
 LUNA reads Discover from
@@ -26,6 +26,18 @@ under load.
    "Allow anyone to @mention this role", or add it to Onboarding / a role picker). Copy its
    id (Developer Mode › right click › Copy Role ID) into **Variables** › `DISCORD_ROLE_ID`.
 4. Actions › Discover notifier › Run workflow, once, to record the current list.
+
+## Slack
+
+1. https://api.slack.com/apps › Create New App › From scratch, pick the workspace.
+2. Incoming Webhooks › on › Add New Webhook to Workspace, choose the channel, copy the URL.
+3. Here: **Secrets** › `SLACK_WEBHOOK_URL`.
+4. Optional **Variables** › `SLACK_MENTION`: `<!channel>`, `<!here>`, or a user group as
+   `<!subteam^S0123ABC>`, added to new-Add-On posts.
+
+Slack starts from whatever is listed when it is first hooked up, and keeps its own record in
+`state.json`, so a failure on one service never re-posts on the other. Slack webhooks cannot
+upload files, so Slack posts have no icon.
 
 ## Local
 

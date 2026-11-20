@@ -1,9 +1,11 @@
-// Posts to a Discord channel when an Add On is added to LUNA's Discover list, or an
+// Posts to Discord and/or Slack when an Add On is added to LUNA's Discover list, or an
 // Add On already in it gets a new release. LUNA reads that list from MANIFEST_URL.
 //
 // Env:
-//   DISCORD_WEBHOOK_URL  the channel's webhook (required unless DRY_RUN=1)
+//   DISCORD_WEBHOOK_URL  a Discord channel's webhook
 //   DISCORD_ROLE_ID      optional role to ping, so members can opt in to alerts
+//   SLACK_WEBHOOK_URL    a Slack incoming webhook (at least one of the two is required)
+//   SLACK_MENTION        optional, e.g. <!channel> or <!subteam^ID>, on new Add Ons
 //   GITHUB_TOKEN         optional, raises GitHub's API rate limit
 //   DRY_RUN=1            print what would be posted, change nothing
 //   STATE_FILE           default ./state.json
@@ -199,45 +201,115 @@ async function post(webhook, { payload, files }) {
     throw new Error('Discord kept rate limiting');
 }
 
+// ---- Slack ---------------------------------------------------------------
+
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * The Slack incoming-webhook message for one change: `{ payload }`. Slack webhooks cannot
+ * upload files, so there is no icon. `mention` (e.g. `<!channel>` or `<!subteam^ID>`)
+ * goes on new Add Ons only.
+ */
+export function buildSlackMessage(change, release, addOns, mention) {
+    const owner = change.repo.split('/')[0];
+    const list = addOns.length ? addOns.slice(0, 10) : [{ name: change.repo.split('/')[1], description: '', categories: [] }];
+    const blocks = [];
+    for (const a of list) {
+        const version = a.version || change.tag;
+        const title = change.kind === 'new' ? `New in Discover: ${a.name}` : `Updated: ${a.name} ${version}`;
+        const notes = cleanNotes(release.body);
+        const body = change.kind === 'new' ? a.description || notes : notes || a.description;
+        blocks.push({ type: 'section', text: { type: 'mrkdwn', text: clip(`*<${release.html_url}|${esc(title)}>*\n${esc(body)}`, 3000) } });
+        const facts = [`By *${esc(a.manufacturer || owner)}*`, change.kind === 'updated' ? `${esc(change.previousTag)} → ${esc(version)}` : esc(version)];
+        if (a.categories.length) facts.push(esc(a.categories.join(', ')));
+        if (a.minLuna) facts.push(`Needs LUNA ${esc(a.minLuna)}+`);
+        blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: facts.join('  ·  ') }] });
+    }
+    blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: 'Install it from LUNA › Add Ons › Discover' }] });
+    const lead = change.kind === 'new' ? `${mention ? `${mention} ` : ''}A new Add On is in Discover: ${list.map((a) => a.name).join(', ')}` : `Updated in Discover: ${list.map((a) => a.name).join(', ')}`;
+    return { payload: { text: lead, blocks } };
+}
+
+async function postSlack(webhook, { payload }) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        const res = await fetch(webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (res.ok) return;
+        if (res.status === 429) {
+            await new Promise((r) => setTimeout(r, (Number(res.headers.get('retry-after')) || 2) * 1000 + 250));
+            continue;
+        }
+        throw new Error(`Slack answered ${res.status}: ${await res.text()}`);
+    }
+    throw new Error('Slack kept rate limiting');
+}
+
 // ---- main ----------------------------------------------------------------
+
+/** Where to post, from env. Each target remembers what it announced on its own. */
+function targetsFromEnv(env, dryRun) {
+    const all = {
+        discord: { url: env.DISCORD_WEBHOOK_URL, build: (c, r, a) => buildMessage(c, r, a, env.DISCORD_ROLE_ID), send: post },
+        slack: { url: env.SLACK_WEBHOOK_URL, build: (c, r, a) => buildSlackMessage(c, r, a, env.SLACK_MENTION), send: postSlack },
+    };
+    return Object.fromEntries(Object.entries(all).filter(([, t]) => dryRun || t.url));
+}
+
+/**
+ * state.json is `{ targets: { <name>: { "owner/repo": tag } } }`. An older `{ listings }`
+ * is Discord's. A target with no record yet (a new Slack hookup) starts from what is
+ * listed now, so turning it on does not announce everything at once.
+ */
+export function prepareState(saved, current, names, announceExisting = false) {
+    const targets = { ...(saved?.targets ?? (saved?.listings ? { discord: saved.listings } : {})) };
+    const seeded = [];
+    for (const name of names) {
+        if (targets[name]) continue;
+        targets[name] = saved || !announceExisting ? { ...current } : {};
+        if (saved || !announceExisting) seeded.push(name);
+    }
+    return { state: { targets }, seeded };
+}
 
 export async function main(env = process.env) {
     const stateFile = env.STATE_FILE ?? new URL('./state.json', import.meta.url);
     const dryRun = env.DRY_RUN === '1';
-    if (!dryRun && !env.DISCORD_WEBHOOK_URL) throw new Error('DISCORD_WEBHOOK_URL is not set');
+    const targets = targetsFromEnv(env, dryRun);
+    if (!Object.keys(targets).length) throw new Error('Set DISCORD_WEBHOOK_URL and/or SLACK_WEBHOOK_URL');
 
     const current = listingsFromManifest(await get(MANIFEST_URL));
     if (!Object.keys(current).length) throw new Error('Discover manifest listed no Add Ons; not trusting it');
 
-    let state = null;
-    try { state = JSON.parse(await readFile(stateFile, 'utf8')); } catch { /* first run */ }
+    let saved = null;
+    try { saved = JSON.parse(await readFile(stateFile, 'utf8')); } catch { /* first run */ }
+    const { state, seeded } = prepareState(saved, current, Object.keys(targets), env.ANNOUNCE_EXISTING === '1');
+    for (const name of seeded) console.log(`${name}: recorded ${Object.keys(current).length} Add Ons without posting.`);
     const save = async () => { if (!dryRun) await writeFile(stateFile, `${JSON.stringify(state, null, 2)}\n`); };
 
-    if (!state && env.ANNOUNCE_EXISTING !== '1') {
-        state = { listings: current };
-        await save();
-        console.log(`First run: recorded ${Object.keys(current).length} Add Ons without posting.`);
-        return;
-    }
-    state ??= { listings: {} };
-
-    const changes = diffListings(state.listings, current);
-    // Take-downs leave quietly, so a relisting announces again.
-    for (const repo of Object.keys(state.listings)) if (!(repo in current)) delete state.listings[repo];
-
-    console.log(changes.length ? `${changes.length} change(s)` : 'No changes.');
+    const releases = new Map();
+    const release = (c) => {
+        const key = `${c.repo}@${c.tag}`;
+        if (!releases.has(key)) releases.set(key, loadRelease(c.repo, c.tag));
+        return releases.get(key);
+    };
     let failed = 0;
-    for (const change of changes) {
-        console.log(`- ${change.kind}: ${change.repo} ${change.tag}`);
-        try {
-            const { release, addOns } = await loadRelease(change.repo, change.tag);
-            const message = buildMessage(change, release, addOns, env.DISCORD_ROLE_ID);
-            if (dryRun) console.log(JSON.stringify(message.payload, null, 2));
-            else await post(env.DISCORD_WEBHOOK_URL, message);
-            state.listings[change.repo] = change.tag;
-        } catch (err) {
-            failed++;
-            console.error(`  failed, will retry next run: ${err.message}`);
+    for (const [name, target] of Object.entries(targets)) {
+        const sent = state.targets[name];
+        const changes = diffListings(sent, current);
+        // Take-downs leave quietly, so a relisting announces again.
+        for (const repo of Object.keys(sent)) if (!(repo in current)) delete sent[repo];
+        console.log(`${name}: ${changes.length ? `${changes.length} change(s)` : 'no changes'}`);
+        for (const change of changes) {
+            console.log(`- ${change.kind}: ${change.repo} ${change.tag}`);
+            try {
+                const { release: r, addOns } = await release(change);
+                const message = target.build(change, r, addOns);
+                if (dryRun) console.log(JSON.stringify(message.payload, null, 2));
+                else await target.send(target.url, message);
+                sent[change.repo] = change.tag;
+            } catch (err) {
+                failed++;
+                console.error(`  failed, will retry next run: ${err.message}`);
+            }
         }
     }
     await save();

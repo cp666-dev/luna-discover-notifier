@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { crc32, deflateRawSync } from 'node:zlib';
-import { listingsFromManifest, diffListings, unzip, addOnsFromPackage, buildMessage, cleanNotes } from './notify.mjs';
+import { listingsFromManifest, diffListings, unzip, addOnsFromPackage, buildMessage, buildSlackMessage, cleanNotes, prepareState } from './notify.mjs';
 
 /** A minimal zip writer, so tests need no fixtures. `deflate` picks method 8 for every file. */
 function zip(files, { deflate = false } = {}) {
@@ -133,4 +133,33 @@ test('a release with no readable package still gets a post', () => {
     const { payload } = buildMessage({ repo: 'o/cool-tool', tag: '1.0', kind: 'new' }, release, [], undefined);
     assert.equal(payload.embeds[0].title, 'New in Discover: cool-tool');
     assert.equal(payload.content, 'A new Add On is in Discover');
+});
+
+test('state: old { listings } becomes Discord\'s; a new target starts from what is listed now', () => {
+    const current = { 'a/a': '1', 'b/b': '1' };
+    const { state, seeded } = prepareState({ listings: { 'a/a': '1' } }, current, ['discord', 'slack']);
+    assert.deepEqual(state.targets, { discord: { 'a/a': '1' }, slack: current });
+    assert.deepEqual(seeded, ['slack']);
+    // Discord still owes b/b; Slack owes nothing.
+    assert.deepEqual(diffListings(state.targets.discord, current).map((c) => c.repo), ['b/b']);
+    assert.deepEqual(diffListings(state.targets.slack, current), []);
+});
+
+test('state: first run seeds every target, unless announcing existing', () => {
+    const current = { 'a/a': '1' };
+    assert.deepEqual(prepareState(null, current, ['discord', 'slack']).state.targets, { discord: current, slack: current });
+    const { state, seeded } = prepareState(null, current, ['slack'], true);
+    assert.deepEqual(state.targets, { slack: {} });
+    assert.deepEqual(seeded, []);
+});
+
+test('slack message: linked title, escaped text, facts, mention on new only', () => {
+    const a = { ...addOn, name: 'A<b>', description: 'x & y' };
+    const { payload } = buildSlackMessage({ repo: 'o/r', tag: '1.0', kind: 'new' }, release, [a], '<!channel>');
+    assert.equal(payload.text, '<!channel> A new Add On is in Discover: A<b>');
+    assert.equal(payload.blocks[0].text.text, `*<${release.html_url}|New in Discover: A&lt;b&gt;>*\nx &amp; y`);
+    assert.equal(payload.blocks[1].elements[0].text, 'By *o*  ·  1.0  ·  Utility  ·  Needs LUNA 3.1.1+');
+    const upd = buildSlackMessage({ repo: 'o/r', tag: '1.1', kind: 'updated', previousTag: '1.0' }, release, [{ ...addOn, version: '1.1' }], '<!channel>');
+    assert.equal(upd.payload.text, 'Updated in Discover: Thing');
+    assert.match(upd.payload.blocks[1].elements[0].text, /1\.0 → 1\.1/);
 });

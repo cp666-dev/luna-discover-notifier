@@ -1,5 +1,5 @@
 # Checks LUNA's Discover list every 15 minutes and posts new and updated Add Ons to
-# Discord. state.json remembers what has been announced; this job commits it back.
+# Discord and/or Slack. state.json remembers what has been announced; this job commits it back.
 name: Discover notifier
 
 on:
@@ -27,6 +27,8 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_ROLE_ID: ${{ vars.DISCORD_ROLE_ID }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MENTION: ${{ vars.SLACK_MENTION }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node notify.mjs
       - name: Save state
