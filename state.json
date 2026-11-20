@@ -10,6 +10,7 @@
     "uaudio-labs/moon-walker": "0.2.1",
     "uaudio-labs/studiolo": "0.1.10",
     "uaudio-labs/video-window": "0.1.4",
-    "vvozmitsel-uaudio/sound-browser": "v0.2.1"
+    "vvozmitsel-uaudio/sound-browser": "v0.2.1",
+    "cp666-dev/interdaw": "1.0.0"
   }
 }
