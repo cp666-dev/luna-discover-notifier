@@ -11,6 +11,12 @@
     "uaudio-labs/studiolo": "0.1.10",
     "uaudio-labs/video-window": "0.1.4",
     "vvozmitsel-uaudio/sound-browser": "v0.2.1",
-    "cp666-dev/interdaw": "1.0.0"
+    "cp666-dev/interdaw": "1.0.0",
+    "cp666-dev/assistive-intelligence": "v0.2.0",
+    "djruzicka/noir-synth": "v1.0.0",
+    "fourdogslong/luna-batch-track-rename-add-on": "v0.1.1",
+    "midfield23/preset-finder": "v0.2.2",
+    "pablortiz/mididigger": "Midi-Digger",
+    "shawngrona/luna-newb": "v1.0.0"
   }
 }
