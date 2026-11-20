@@ -1,0 +1,11 @@
+{
+  "name": "luna-discover-notifier",
+  "private": true,
+  "type": "module",
+  "description": "Posts to Discord when an Add On joins or updates in LUNA's Discover list.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "dry-run": "DRY_RUN=1 node notify.mjs"
+  }
+}
