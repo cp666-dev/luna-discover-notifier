@@ -1,22 +1,24 @@
 {
-  "listings": {
-    "fwilson-glitch/my-add-on": "v0.1.0",
-    "jhaydon111/luna-add-ons": "0.1.1",
-    "nohumans-com/midi-learn": "0.4.1",
-    "shawngrona/luna-comp-machine": "v1.0.0",
-    "shawnist/listening-booth": "v0.1.0",
-    "uaudio-labs/markers": "0.1.0",
-    "uaudio-labs/midi-notation": "0.1.3",
-    "uaudio-labs/moon-walker": "0.2.1",
-    "uaudio-labs/studiolo": "0.1.10",
-    "uaudio-labs/video-window": "0.1.4",
-    "vvozmitsel-uaudio/sound-browser": "v0.2.1",
-    "cp666-dev/interdaw": "1.0.0",
-    "cp666-dev/assistive-intelligence": "v0.2.0",
-    "djruzicka/noir-synth": "v1.0.0",
-    "fourdogslong/luna-batch-track-rename-add-on": "v0.1.1",
-    "midfield23/preset-finder": "v0.2.2",
-    "pablortiz/mididigger": "Midi-Digger",
-    "shawngrona/luna-newb": "v1.0.0"
+  "targets": {
+    "discord": {
+      "fwilson-glitch/my-add-on": "v0.1.0",
+      "jhaydon111/luna-add-ons": "0.1.1",
+      "nohumans-com/midi-learn": "0.4.1",
+      "shawngrona/luna-comp-machine": "v1.0.0",
+      "shawnist/listening-booth": "v0.1.0",
+      "uaudio-labs/markers": "0.1.0",
+      "uaudio-labs/midi-notation": "0.1.3",
+      "uaudio-labs/moon-walker": "0.2.1",
+      "uaudio-labs/studiolo": "0.1.10",
+      "uaudio-labs/video-window": "0.1.4",
+      "vvozmitsel-uaudio/sound-browser": "v0.2.1",
+      "cp666-dev/interdaw": "1.0.0",
+      "cp666-dev/assistive-intelligence": "v0.2.0",
+      "djruzicka/noir-synth": "v1.0.0",
+      "fourdogslong/luna-batch-track-rename-add-on": "v0.1.1",
+      "midfield23/preset-finder": "v0.2.2",
+      "pablortiz/mididigger": "Midi-Digger",
+      "shawngrona/luna-newb": "v1.0.0"
+    }
   }
 }
