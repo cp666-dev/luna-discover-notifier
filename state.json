@@ -6,7 +6,7 @@
       "nohumans-com/midi-learn": "0.4.1",
       "shawngrona/luna-comp-machine": "v1.0.0",
       "shawnist/listening-booth": "v0.1.0",
-      "uaudio-labs/markers": "0.1.0",
+      "uaudio-labs/markers": "0.1.1",
       "uaudio-labs/midi-notation": "0.1.3",
       "uaudio-labs/moon-walker": "0.2.1",
       "uaudio-labs/studiolo": "0.1.10",
@@ -18,7 +18,8 @@
       "fourdogslong/luna-batch-track-rename-add-on": "v0.1.1",
       "midfield23/preset-finder": "v0.2.2",
       "pablortiz/mididigger": "Midi-Digger",
-      "shawngrona/luna-newb": "v1.0.0"
+      "shawngrona/luna-newb": "v1.0.0",
+      "audioplanet/luna-default-inserts": "v0.1.0"
     }
   }
 }
