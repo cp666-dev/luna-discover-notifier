@@ -19,7 +19,10 @@
       "midfield23/preset-finder": "v0.2.2",
       "pablortiz/mididigger": "Midi-Digger",
       "shawngrona/luna-newb": "v1.0.0",
-      "audioplanet/luna-default-inserts": "v0.1.0"
+      "audioplanet/luna-default-inserts": "v0.1.0",
+      "audioplanet/luna-song-bounce": "v0.4.3",
+      "fedetrillo/ab-monitor": "v1.0.0",
+      "fedetrillo/compact-mixer": "v1.0.0"
     }
   }
 }
