@@ -5,7 +5,7 @@ when an Add On already there publishes a new release.
 
 LUNA reads Discover from
 [`uaudio-labs/marketplace/manifest.json`](https://github.com/uaudio-labs/marketplace/blob/main/manifest.json),
-one `{ github, tag }` per Add On. A GitHub Action here checks it every 15 minutes, compares it
+one `{ github, tag }` per Add On. A GitHub Action here checks it about every 10 minutes, compares it
 with `state.json`, and for each change reads the release's `.lunaaddon` (name, description,
 categories, required LUNA version, icon) and posts an embed linking the release.
 
@@ -14,8 +14,9 @@ categories, required LUNA version, icon) and posts an embed linking the release.
 - **Removed**: nothing is posted; it is forgotten, so relisting announces it again.
 
 The first run records the current list without posting. A post that fails is retried on the
-next run. Posts arrive up to about 20 minutes after a merge, since GitHub's schedule runs late
-under load.
+next run. GitHub runs schedules hours late on quiet repos, so each run waits 10 minutes and
+starts the next one itself; the schedule only restarts that chain if it breaks. Posts arrive
+within about 12 minutes of a merge. To stop it, disable the workflow under Actions.
 
 ## Setup
 

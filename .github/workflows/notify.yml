@@ -1,4 +1,4 @@
-# Checks LUNA's Discover list every 15 minutes and posts new and updated Add Ons to
+# Checks LUNA's Discover list about every 10 minutes and posts new and updated Add Ons to
 # Discord, and once a day an Add On of the Day to Slack. state.json remembers what has been announced; this job commits it back.
 name: Discover notifier
 
@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: notify
@@ -17,7 +18,7 @@ concurrency:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -48,3 +49,13 @@ jobs:
               git commit --allow-empty -m "Keep the schedule alive"
               git push
           fi
+      - name: Queue the next check
+        # GitHub runs the schedule above hours late on quiet repos, so each run starts the
+        # next one itself; the schedule only restarts the chain if it ever breaks. The
+        # concurrency group keeps at most one run waiting, so chains never pile up.
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep 600
+          gh workflow run notify.yml --repo "$GITHUB_REPOSITORY" --ref main
