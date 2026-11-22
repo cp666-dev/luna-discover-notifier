@@ -29,7 +29,8 @@
       "elderberry/luna-track-notes": "v0.1.0",
       "fedetrillo/varispeed": "v1.0.0",
       "neiliussattinius/swipe-comping": "v0.2.2",
-      "shawnist/ox-tone-recall": "v0.1.0"
+      "shawnist/ox-tone-recall": "v0.1.0",
+      "fedetrillo/lunasuite": "V1.0.0"
     }
   }
 }
