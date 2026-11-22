@@ -24,7 +24,12 @@
       "fedetrillo/ab-monitor": "v1.0.0",
       "fedetrillo/compact-mixer": "v1.0.0",
       "cp666-dev/sdk-controller": "v1.0.1",
-      "luna-universe-community/universe-pulse-aa5e": "v1.0.0"
+      "luna-universe-community/universe-pulse-aa5e": "v1.0.0",
+      "audioplanet/luna-import-export": "v0.3.0",
+      "elderberry/luna-track-notes": "v0.1.0",
+      "fedetrillo/varispeed": "v1.0.0",
+      "neiliussattinius/swipe-comping": "v0.2.2",
+      "shawnist/ox-tone-recall": "v0.1.0"
     }
   }
 }
