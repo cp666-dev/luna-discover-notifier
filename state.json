@@ -37,7 +37,8 @@
       "fedetrillo/strummer": "v1.0.0",
       "fedetrillo/step-dice": "v1.0.0",
       "tait-adam/floating-markers": "v0.1.3",
-      "fedetrillo/arranger": "V1.0.0"
+      "fedetrillo/arranger": "V1.0.0",
+      "fedetrillo/fades": "V1.0.0"
     }
   }
 }
