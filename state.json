@@ -33,7 +33,8 @@
       "fedetrillo/lunasuite": "V1.0.0",
       "johanze-ops/luna-sample-browser": "v0.2.0",
       "johanze-ops/pushdesk-luna": "v0.1.0",
-      "johanze-ops/session-transpose": "v0.1.1"
+      "johanze-ops/session-transpose": "v0.1.1",
+      "fedetrillo/strummer": "v1.0.0"
     }
   }
 }
