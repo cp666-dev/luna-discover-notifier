@@ -42,7 +42,8 @@
       "johanze-ops/mix-snapshots": "v0.1.0",
       "fourdogslong/loop-lock": "v0.3.16",
       "uaudio-labs/falling-notes": "0.2.0",
-      "fourdogslong/luna-file-browser-add-on": "v1.0.64"
+      "fourdogslong/luna-file-browser-add-on": "v1.0.64",
+      "drgoo1/studiomind-midi-drum-editor": "v0.2.19"
     }
   }
 }
