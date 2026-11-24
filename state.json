@@ -50,7 +50,8 @@
       "fedetrillo/midi-transform": "V1.0.0",
       "luna-universe-community/universe-track-glow-4ba7": "v1.0.0",
       "jacobsilver2/track-view": "v0.1.0",
-      "tyerexua/frosty-faders": "v0.1.0"
+      "tyerexua/frosty-faders": "v0.1.0",
+      "fedetrillo/vocal-trim": "V1.0.0"
     }
   }
 }
