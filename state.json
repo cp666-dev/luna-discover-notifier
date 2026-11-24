@@ -39,7 +39,9 @@
       "tait-adam/floating-markers": "v0.1.3",
       "fedetrillo/arranger": "V1.0.0",
       "fedetrillo/fades": "V1.0.0",
-      "johanze-ops/mix-snapshots": "v0.1.0"
+      "johanze-ops/mix-snapshots": "v0.1.0",
+      "fourdogslong/loop-lock": "v0.3.16",
+      "uaudio-labs/falling-notes": "0.2.0"
     }
   }
 }
