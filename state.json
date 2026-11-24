@@ -44,7 +44,9 @@
       "uaudio-labs/falling-notes": "0.2.0",
       "fourdogslong/luna-file-browser-add-on": "v1.0.64",
       "drgoo1/studiomind-midi-drum-editor": "v0.2.19",
-      "fedetrillo/modulators": "V1.0.0"
+      "fedetrillo/modulators": "V1.0.0",
+      "fedetrillo/midi-creator": "V1.0.0",
+      "tait-adam/a-better-solo": "v0.1.3"
     }
   }
 }
