@@ -54,7 +54,8 @@
       "fedetrillo/vocal-trim": "V1.0.0",
       "midfield23/phases": "v0.1.1",
       "fedetrillo/stems-versions": "V1.0.0",
-      "fedetrillo/cue-mixes": "V1.0.0"
+      "fedetrillo/cue-mixes": "V1.0.0",
+      "fedetrillo/midi-capture": "V1.0.0"
     }
   }
 }
