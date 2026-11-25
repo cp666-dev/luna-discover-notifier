@@ -58,4 +58,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sleep 600
-          gh workflow run notify.yml --repo "$GITHUB_REPOSITORY" --ref main
+          # GitHub's API sometimes times out; a second dispatch is harmless.
+          for wait in 10 30 60 120 0; do
+              gh workflow run notify.yml --repo "$GITHUB_REPOSITORY" --ref main && exit 0
+              sleep "$wait"
+          done
+          exit 1
