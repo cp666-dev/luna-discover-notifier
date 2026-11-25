@@ -61,5 +61,11 @@
       "dawnchorus-audio/ai-voice-sound-unit": "v0.1.0",
       "fedetrillo/toolbox": "V1.0.0"
     }
+  },
+  "daily": {
+    "last_day": "2026-11-25",
+    "featured": [
+      "uaudio-labs/markers"
+    ]
   }
 }
