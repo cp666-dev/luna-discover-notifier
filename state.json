@@ -58,7 +58,8 @@
       "fedetrillo/midi-capture": "V1.0.0",
       "mitchstein/global-stereo-to-mono": "v0.3.0",
       "cp666-dev/spark-mcp": "v1.0.1",
-      "dawnchorus-audio/ai-voice-sound-unit": "v0.1.0"
+      "dawnchorus-audio/ai-voice-sound-unit": "v0.1.0",
+      "fedetrillo/toolbox": "V1.0.0"
     }
   }
 }
