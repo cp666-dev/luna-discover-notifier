@@ -59,7 +59,9 @@
       "mitchstein/global-stereo-to-mono": "v0.3.0",
       "cp666-dev/spark-mcp": "v1.0.1",
       "dawnchorus-audio/ai-voice-sound-unit": "v0.1.0",
-      "fedetrillo/toolbox": "V1.0.0"
+      "fedetrillo/toolbox": "V1.0.0",
+      "rmcgaughey-prog/bar-beat": "v0.2.4",
+      "rmcgaughey-prog/luna-track-show-hide": "v0.4.1"
     }
   },
   "daily": {
