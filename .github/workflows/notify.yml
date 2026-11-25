@@ -18,7 +18,7 @@ concurrency:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -59,7 +59,7 @@ jobs:
         run: |
           sleep 600
           # GitHub's API sometimes times out; a second dispatch is harmless.
-          for wait in 10 30 60 120 0; do
+          for wait in 30 60 120 240 480 0; do
               gh workflow run notify.yml --repo "$GITHUB_REPOSITORY" --ref main && exit 0
               sleep "$wait"
           done
