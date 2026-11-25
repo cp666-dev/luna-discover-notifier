@@ -274,7 +274,7 @@ async function addOnOfTheDay(env, state, current, release, dryRun) {
     const force = env.DAILY_FORCE === '1';
     const { day, hour } = localNow(new Date(), env.DAILY_TZ || 'America/Los_Angeles');
     const daily = (state.daily ??= { last_day: null, featured: [] });
-    if (!force && (daily.last_day === day || hour < Number(env.DAILY_HOUR ?? 9))) return;
+    if (!force && (daily.last_day === day || hour < Number(env.DAILY_HOUR || 9))) return;
     const { repo, featured } = pickOfTheDay(Object.keys(current).sort(), daily.featured);
     console.log(`add on of the day: ${repo}`);
     const { release: r, addOns } = await release({ repo, tag: current[repo] });
