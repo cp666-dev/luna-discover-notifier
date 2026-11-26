@@ -68,7 +68,8 @@
       "rmcgaughey-prog/quantize-luna-add-on": "v0.4.2",
       "voltperoctave/glow-job-luna": "v1.0.0",
       "alexd0001/luna-settings-reset-downloads": "v0.2.1",
-      "voltperoctave/percussive-maintenance-luna": "v1.0.0"
+      "voltperoctave/percussive-maintenance-luna": "v1.0.0",
+      "alexd0001/song-batch-downloads": "v0.6.4"
     }
   },
   "daily": {
