@@ -67,7 +67,8 @@
       "iamadan/luna-to-ni-kontrol-mk3": "v2.4.1",
       "rmcgaughey-prog/quantize-luna-add-on": "v0.4.2",
       "voltperoctave/glow-job-luna": "v1.0.0",
-      "alexd0001/luna-settings-reset-downloads": "v0.2.1"
+      "alexd0001/luna-settings-reset-downloads": "v0.2.1",
+      "voltperoctave/percussive-maintenance-luna": "v1.0.0"
     }
   },
   "daily": {
