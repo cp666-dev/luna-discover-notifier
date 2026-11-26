@@ -73,9 +73,10 @@
     }
   },
   "daily": {
-    "last_day": "2026-11-25",
+    "last_day": "2026-11-26",
     "featured": [
-      "uaudio-labs/markers"
+      "uaudio-labs/markers",
+      "vvozmitsel-uaudio/sound-browser"
     ]
   }
 }
