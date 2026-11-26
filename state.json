@@ -70,7 +70,8 @@
       "alexd0001/luna-settings-reset-downloads": "v0.2.1",
       "voltperoctave/percussive-maintenance-luna": "v1.0.0",
       "alexd0001/song-batch-downloads": "v0.6.4",
-      "voltperoctave/convertible-luna": "v0.5.0-beta"
+      "voltperoctave/convertible-luna": "v0.5.0-beta",
+      "denisb3142/midi-list-editor": "v1.0.0"
     }
   },
   "daily": {
