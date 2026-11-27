@@ -73,7 +73,8 @@
       "voltperoctave/convertible-luna": "v0.5.0-beta",
       "denisb3142/midi-list-editor": "v1.0.0",
       "voltperoctave/breakchopper-luna": "v0.2.0-beta",
-      "mjmakki13-cloud/uf8-trim-and-phase": "v0.5.2"
+      "mjmakki13-cloud/uf8-trim-and-phase": "v0.5.2",
+      "humphrey6120-bit/gainstaging": "v1.0.1"
     }
   },
   "daily": {
