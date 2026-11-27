@@ -78,7 +78,8 @@
       "humphrey6120-bit/recording-level": "v1.0.0",
       "humphrey6120-bit/phase-align": "v1.0.0",
       "voltperoctave/two-timer-luna": "v1.0.0",
-      "andresandiah/logic-importer": "0.2.0"
+      "andresandiah/logic-importer": "0.2.0",
+      "formdevelopment/signal-map": "v0.1.7"
     }
   },
   "daily": {
