@@ -80,10 +80,11 @@
     }
   },
   "daily": {
-    "last_day": "2026-11-26",
+    "last_day": "2026-11-27",
     "featured": [
       "uaudio-labs/markers",
-      "vvozmitsel-uaudio/sound-browser"
+      "vvozmitsel-uaudio/sound-browser",
+      "denisb3142/midi-list-editor"
     ]
   }
 }
