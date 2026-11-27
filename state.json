@@ -76,7 +76,8 @@
       "mjmakki13-cloud/uf8-trim-and-phase": "v0.5.2",
       "humphrey6120-bit/gainstaging": "v1.0.1",
       "humphrey6120-bit/recording-level": "v1.0.0",
-      "humphrey6120-bit/phase-align": "v1.0.0"
+      "humphrey6120-bit/phase-align": "v1.0.0",
+      "voltperoctave/two-timer-luna": "v1.0.0"
     }
   },
   "daily": {
